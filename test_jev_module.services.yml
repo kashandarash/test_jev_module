@@ -10,3 +10,4 @@ services:
   test_jev_module.systemone_client: '@Drupal\test_jev_module\SystemOne\SystemOneClient'
 
   Drupal\test_jev_module\CommentPositivity: ~
+  Drupal\test_jev_module\CommentNeedsReply: ~

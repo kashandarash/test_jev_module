@@ -8,12 +8,13 @@ use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\Core\Hook\Attribute\Hook;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\test_jev_module\Plugin\Field\CommentNeedsReplyItemList;
 use Drupal\test_jev_module\Plugin\Field\CommentPositivityItemList;
 
 /**
- * Adds the computed JEV positivity field to comments.
+ * Adds the computed JEV fields to comments.
  */
-class CommentPositivityHooks {
+class CommentHooks {
 
   use StringTranslationTrait;
 
@@ -37,6 +38,15 @@ class CommentPositivityHooks {
         ->setSetting('max', 10)
         ->setSetting('suffix', '/10')
         ->setDisplayConfigurable('view', TRUE),
+      'jev_needs_reply' => BaseFieldDefinition::create('boolean')
+        ->setLabel($this->t('JEV needs reply'))
+        ->setDescription($this->t('Whether the comment asks the author something and needs a reply, decided by JEV AI.'))
+        ->setComputed(TRUE)
+        ->setReadOnly(TRUE)
+        ->setClass(CommentNeedsReplyItemList::class)
+        ->setSetting('on_label', $this->t('Yes'))
+        ->setSetting('off_label', $this->t('No'))
+        ->setDisplayConfigurable('view', TRUE),
     ];
   }
 
@@ -50,6 +60,13 @@ class CommentPositivityHooks {
       'help' => $this->t('How positive the comment is, shown as a 1–10 rating. Calls the JEV API for comments that are not rated yet.'),
       'field' => [
         'id' => 'test_jev_module_comment_positivity',
+      ],
+    ];
+    $data['comment_field_data']['jev_needs_reply'] = [
+      'title' => $this->t('JEV needs reply'),
+      'help' => $this->t('Whether the comment needs a reply, shown as Yes/No. Calls the JEV API for comments that are not checked yet.'),
+      'field' => [
+        'id' => 'test_jev_module_comment_needs_reply',
       ],
     ];
   }
