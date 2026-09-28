@@ -1,0 +1,4 @@
+administer jev api:
+  title: 'Administer JEV API'
+  description: 'Set the JEV API key.'
+  restrict access: true

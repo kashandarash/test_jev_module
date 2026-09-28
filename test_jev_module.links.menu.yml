@@ -1,0 +1,12 @@
+test_jev_module.admin_config_jev:
+  title: 'JEV API'
+  description: 'Configure the JEV AI integration.'
+  route_name: test_jev_module.admin_config_jev
+  parent: system.admin_config
+  weight: 50
+
+test_jev_module.settings:
+  title: 'JEV API settings'
+  description: 'Set the JEV API key.'
+  route_name: test_jev_module.settings
+  parent: test_jev_module.admin_config_jev

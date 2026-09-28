@@ -1,0 +1,6 @@
+name: 'Test JEV Module'
+type: module
+description: 'Sandbox module for testing JEV AI.'
+package: Custom
+core_version_requirement: ^11
+configure: test_jev_module.settings

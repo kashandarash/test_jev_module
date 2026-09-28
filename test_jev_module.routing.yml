@@ -1,0 +1,15 @@
+test_jev_module.admin_config_jev:
+  path: '/admin/config/jev'
+  defaults:
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+    _title: 'JEV API'
+  requirements:
+    _permission: 'administer jev api'
+
+test_jev_module.settings:
+  path: '/admin/config/jev/settings'
+  defaults:
+    _form: '\Drupal\test_jev_module\Form\JevApiSettingsForm'
+    _title: 'JEV API settings'
+  requirements:
+    _permission: 'administer jev api'
