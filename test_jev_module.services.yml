@@ -8,3 +8,5 @@ services:
 
   Drupal\test_jev_module\SystemOne\SystemOneClient: ~
   test_jev_module.systemone_client: '@Drupal\test_jev_module\SystemOne\SystemOneClient'
+
+  Drupal\test_jev_module\CommentPositivity: ~
