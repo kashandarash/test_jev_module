@@ -12,28 +12,30 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
- * Rates how positive a comment is, using SystemOne's noul question.
+ * Rates how positive a comment is, using SystemOne's score question.
  */
 class CommentPositivity {
 
   /**
    * The question asked about the comment text.
    */
-  protected const INSTRUCTIONS = 'Is this comment positive?';
+  protected const INSTRUCTIONS = 'How positive is this comment?';
 
   /**
-   * What counts as "yes".
+   * The score levels, from lowest to highest.
    *
-   * The "no clear opinion" sentence keeps neutral comments near the middle
-   * (about 5).
-   * Without it, SystemOne treats neutral as "not positive" and rates it 3.
+   * SystemOne returns a probability-weighted score from 0 (first level) to
+   * 6 (last level), which is converted to a 1–10 rating.
    */
-  protected const TRUE_CRITERIA = 'Positive, or neutral leaning positive. A comment with no clear opinion is equally positive and negative.';
-
-  /**
-   * What counts as "no".
-   */
-  protected const FALSE_CRITERIA = 'Negative, or neutral leaning negative. A comment with no clear opinion is equally positive and negative.';
+  protected const LEVELS = [
+    'Very negative',
+    'Negative',
+    'Somewhat negative',
+    'Neutral',
+    'Somewhat positive',
+    'Positive',
+    'Very positive',
+  ];
 
   public function __construct(
     protected SystemOneClient $client,
@@ -61,8 +63,7 @@ class CommentPositivity {
 
     $cid = 'test_jev_module:comment_positivity:' . hash('sha256', implode("\n", [
       self::INSTRUCTIONS,
-      self::TRUE_CRITERIA,
-      self::FALSE_CRITERIA,
+      ...self::LEVELS,
       $text,
     ]));
     if ($cached = $this->cache->get($cid)) {
@@ -70,7 +71,7 @@ class CommentPositivity {
     }
 
     try {
-      $probability = $this->client->noul($text, self::INSTRUCTIONS, self::TRUE_CRITERIA, self::FALSE_CRITERIA);
+      $answer = $this->client->score($text, self::INSTRUCTIONS, self::LEVELS);
     }
     catch (SystemOneException $e) {
       // The client already logged the details. Failures are not cached, so
@@ -82,17 +83,24 @@ class CommentPositivity {
       return NULL;
     }
 
-    $rating = self::toRating($probability);
+    if (!isset($answer['score']) || !is_numeric($answer['score'])) {
+      $this->logger->warning('Could not rate comment @id: the response has no score.', [
+        '@id' => $comment->id() ?? 'new',
+      ]);
+      return NULL;
+    }
+
+    $rating = self::toRating((float) $answer['score'], count(self::LEVELS) - 1);
     $this->cache->set($cid, $rating);
     return $rating;
   }
 
   /**
-   * Converts a 0–1 probability to a 1–10 rating.
+   * Converts a score from 0 to $max into a 1–10 rating.
    */
-  public static function toRating(float $probability): int {
-    $probability = max(0.0, min(1.0, $probability));
-    return 1 + (int) round($probability * 9);
+  public static function toRating(float $score, int $max): int {
+    $fraction = max(0.0, min(1.0, $score / $max));
+    return 1 + (int) round($fraction * 9);
   }
 
   /**
